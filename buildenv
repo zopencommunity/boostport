@@ -1,0 +1,99 @@
+export ZOPEN_STABLE_URL="https://github.com/boostorg/boost.git"
+#export ZOPEN_STABLE_TAG="boost-1.82.0"
+export ZOPEN_DEV_BRANCH="boost-1.82.0"
+export ZOPEN_STABLE_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
+export ZOPEN_DEV_URL="https://github.com/boostorg/boost.git"
+export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
+export ZOPEN_BUILD_LINE="DEV"
+export ZOPEN_CLONE_SUBMODULES="yes"
+export ZOPEN_COMP="clang"
+export ZOPEN_CXXFLAGS ="-m64"
+
+export ZOPEN_BOOTSTRAP="./bootstrap.sh"
+export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
+export ZOPEN_CONFIGURE=skip
+export ZOPEN_CLEAN=skip
+export ZOPEN_MAKE="./b2"
+export ZOPEN_MAKE_MINIMAL="yes"
+export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
+
+zopen_init()
+{
+  # This runs after clone & regular patches are applied
+  # and runs before bootstrap, configure, build
+
+  #boostrap.sh path -> located at ./boost/bootstrap.sh
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/fix_fileunix"
+  git apply $ZOPEN_ROOT/patches/bootstrap.diff
+
+  # aligned_alloc.hpp patch -> located at ./boost/libs/align/aligned_alloc.hpp
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/align.diff"
+  cd libs/align 
+  git apply $ZOPEN_ROOT/patches/align.diff
+  cd -
+
+  # asio directory  patch -> located at ./boost/libs/asio
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/asio.diff"
+  cd libs/asio
+  git apply $ZOPEN_ROOT/patches/asio.diff
+  cd -
+
+  # math directory  patch -> located at ./boost/libs/math
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/math.diff"
+  cd libs/math
+  git apply $ZOPEN_ROOT/patches/math.diff
+  cd -
+
+  # multiprecision directory  patch -> located at ./boost/libs/multiprecision
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/multiprecision.diff"
+  cd libs/multiprecision
+  git apply $ZOPEN_ROOT/patches/multiprecision.diff
+  cd -
+
+  # thread directory  patch -> located at ./boost/libs/thread
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/thread.diff"
+  cd libs/thread
+  git apply $ZOPEN_ROOT/patches/thread.diff
+  cd -
+
+  # build directory  patch -> located at ./boost/tools/build
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/build.diff"
+  cd tools/build
+  git apply $ZOPEN_ROOT/patches/build.diff
+  #git apply $ZOPEN_ROOT/patches/build_without_clang-linux.diff
+  cd -
+}
+
+zopen_pre_configure()
+{
+  sed -i 's/using clang ;/using clang : : "ibm-clang++64" : <cxxflags>" -DNDEBUG -march=arch10 -O3 -m64 -D_XOPEN_SOURCE=600 -D_UNIX03_THREADS -D_POSIX_THREADS -D_OPEN_SYS_FILE_EXT -fasm -fzos-le-char-mode=ascii -fno-short-enums" ;/g' project-config.jam 
+}
+zopen_check_results()
+{
+  dir="$1"
+  pfx="$2"
+  chk="$1/$2_check.log"
+
+  # Echo the following information to gauge build health
+  echo "actualFailures:0"
+  echo "totalTests:1"
+  echo "expectedFailures:0"
+  echo "expectedTotalTests:1"
+}
+
+zopen_append_to_env()
+{
+  # echo envars outside of PATH, MANPATH, LIBPATH
+}
+
+zopen_append_to_setup()
+{
+  # echo commands that will run when installing via setup.sh
+}
+
+zopen_get_version()
+{
+  # Modify to echo the version of your tool/library
+  # Rather than hardcoding the version, obtain the version by running the tool/library
+  echo "1.0.0"
+}
