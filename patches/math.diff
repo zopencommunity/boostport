@@ -1,0 +1,14 @@
+diff --git a/include/boost/math/tools/config.hpp b/include/boost/math/tools/config.hpp
+index a52393e7b..937ad3cf6 100644
+--- a/include/boost/math/tools/config.hpp
++++ b/include/boost/math/tools/config.hpp
+@@ -20,7 +20,8 @@
+ #  endif
+ #else
+ #  if __cplusplus < 201402L
+-#    warning "The minimum language standard to use Boost.Math will be C++14 starting in July 2023 (Boost 1.82 release)"
++// ignore this for now
++//#    warning "The minimum language standard to use Boost.Math will be C++14 starting in July 2023 (Boost 1.82 release)"
+ #  endif
+ #endif
+ 

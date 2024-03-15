@@ -1,0 +1,14 @@
+diff --git a/include/boost/align/aligned_alloc.hpp b/include/boost/align/aligned_alloc.hpp
+index b5b6bd8..35bfb2e 100644
+--- a/include/boost/align/aligned_alloc.hpp
++++ b/include/boost/align/aligned_alloc.hpp
+@@ -18,7 +18,8 @@ Distributed under the Boost Software License, Version 1.0.
+ #include <AvailabilityMacros.h>
+ #endif
+ 
+-#if defined(BOOST_ALIGN_USE_ALIGN)
++#if defined(BOOST_ALIGN_USE_ALIGN)|| (__MVS__)
++// z/OS doesn't have posix_memalign() yet
+ #include <boost/align/detail/aligned_alloc.hpp>
+ #elif defined(BOOST_ALIGN_USE_NEW)
+ #include <boost/align/detail/aligned_alloc_new.hpp>
