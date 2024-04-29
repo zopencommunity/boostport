@@ -21,7 +21,7 @@ zopen_bootstrap()
 {
         echo "In bootstrap"
         echo `pwd`
-        ./bootstrap.sh -with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+        ./bootstrap.sh -with-libraries=thread,chrono,container --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
 }
 
 zopen_build()
