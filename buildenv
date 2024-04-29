@@ -100,7 +100,6 @@ zopen_init()
   git apply $ZOPEN_ROOT/patches/system_clocks.hpp.patch
   cd -
   echo `pwd`
-  #git apply $ZOPEN_ROOT/patches/build_without_clang-linux.diff
 }
 
 zopen_pre_configure()
