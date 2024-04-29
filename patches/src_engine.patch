@@ -1,18 +1,19 @@
 diff --git a/src/engine/execunix.cpp b/src/engine/execunix.cpp
-index 7825fffe7..1f5445b49 100644
+index fd8220e77..f81e6060c 100644
 --- a/src/engine/execunix.cpp
 +++ b/src/engine/execunix.cpp
-@@ -25,6 +25,9 @@
- #include <sys/times.h>
+@@ -26,6 +26,10 @@
  #include <sys/wait.h>
  #include <poll.h>
+ 
 +#ifdef __MVS__
 +#include <unistd.h>
 +#endif
- 
++
  #if defined(sun) || defined(__sun)
      #include <wait.h>
-@@ -380,6 +383,10 @@ static int read_descriptor( int i, int s )
+ #endif
+@@ -380,6 +384,10 @@ static int read_descriptor( int i, int s )
          cmdtab[ i ].stream[ s ] ) ) )
      {
          buffer[ ret ] = 0;
@@ -23,7 +24,7 @@ index 7825fffe7..1f5445b49 100644
  
          /* Copy it to our output if appropriate */
          if ( ! ( cmdtab[ i ].flags & EXEC_CMD_QUIET ) )
-@@ -526,7 +533,12 @@ void exec_wait()
+@@ -526,7 +534,12 @@ void exec_wait()
                  int status;
                  int rstat;
                  timing_info time_info;
@@ -36,7 +37,7 @@ index 7825fffe7..1f5445b49 100644
  
                  /* We found a terminated child process - our search is done. */
                  finished = 1;
-@@ -537,7 +549,19 @@ void exec_wait()
+@@ -537,7 +550,19 @@ void exec_wait()
                      close_streams( i, ERR );
  
                  /* Reap the child and release resources. */
@@ -57,10 +58,10 @@ index 7825fffe7..1f5445b49 100644
                          break;
                  if ( pid != cmdtab[ i ].pid )
 diff --git a/src/engine/filesys.cpp b/src/engine/filesys.cpp
-index 45188c4e1..39af3e526 100644
+index 98e1aabe8..cfe5757ef 100644
 --- a/src/engine/filesys.cpp
 +++ b/src/engine/filesys.cpp
-@@ -328,8 +328,14 @@ void file_query_posix_( file_info_t * const info )
+@@ -316,8 +316,14 @@ void file_query_posix_( file_info_t * const info )
      }
      else
      {
@@ -76,10 +77,10 @@ index 45188c4e1..39af3e526 100644
  #if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809
  #if defined(OS_MACOSX)
 diff --git a/src/engine/fileunix.cpp b/src/engine/fileunix.cpp
-index 6cde3f695..72d480241 100644
+index 3a7907ead..7b47e66c1 100644
 --- a/src/engine/fileunix.cpp
 +++ b/src/engine/fileunix.cpp
-@@ -103,6 +103,81 @@ struct ar_hdr  /* archive file member header - printable ascii */
+@@ -103,6 +103,83 @@ struct ar_hdr  /* archive file member header - printable ascii */
  # include <ar.h>
  #endif
  
@@ -116,7 +117,7 @@ index 6cde3f695..72d480241 100644
 +      memcpy(copy, dirent, sizeof(*copy));
 +
 +      nl_copy = (struct dirent**)realloc(nl, sizeof(*copy) * (count + 1));
-+      if (nl_copy == NULL) {
++	if (nl_copy == NULL) {
 +        free(copy);
 +        goto error;
 +      }
@@ -131,7 +132,7 @@ index 6cde3f695..72d480241 100644
 +
 +  closedir(mdir);
 +
-+  *namelist = nl;
++ *namelist = nl;
 +  return count;
 +
 +error:
@@ -144,6 +145,7 @@ index 6cde3f695..72d480241 100644
 +  errno = ENOMEM;
 +  return -1;
 +}
++
 +
 +/*
 +    The alphasort() and versionsort() functions can be used as the
@@ -158,46 +160,7 @@ index 6cde3f695..72d480241 100644
 +}
 +
 +#endif
++
  
  /*
   * file_collect_dir_content_() - collects directory content information
-diff --git a/src/tools/gcc.jam b/src/tools/gcc.jam
-index 8a4906857..d5a8ca363 100644
---- a/src/tools/gcc.jam
-+++ b/src/tools/gcc.jam
-@@ -397,7 +397,8 @@ local rule compile-link-flags ( * )
-     # The default system libraries include pthread functions.  No additional libraries or CFLAGS are necessary to use this API.
-     local no-threading = android beos haiku sgi darwin vxworks iphone appletv ;
-     local threading-generic-os = [ set.difference $(all-os) : $(no-threading) $(bsd) windows cygwin solaris qnx ] ;
--    threading-flags <target-os>$(threading-generic-os) : -pthread : rt ;
-+# z/OS does not need -pthread
-+    #threading-flags <target-os>$(threading-generic-os) : -pthread : rt ;
- }
- 
- {
-@@ -892,9 +893,10 @@ toolset.flags gcc.link.dll .IMPLIB-COMMAND <target-os>cygwin : "-Wl,--out-implib
-     # support -s.
-     toolset.flags gcc.link OPTIONS <target-os>$(generic-os)/<strip>on :
-         -Wl,--strip-all ;
--    toolset.flags gcc.link START-GROUP <target-os>$(generic-os) :
--        -Wl,--start-group ;
--    toolset.flags gcc.link END-GROUP <target-os>$(generic-os) : -Wl,--end-group ;
-+# z/OS does not need start-/end-group
-+    #toolset.flags gcc.link START-GROUP <target-os>$(generic-os) :
-+    #    -Wl,--start-group ;
-+    #toolset.flags gcc.link END-GROUP <target-os>$(generic-os) : -Wl,--end-group ;
- 
-     local rpath-os = [ set.difference $(all-os) : aix darwin vxworks solaris osf hpux windows ] ;
-     toolset.flags gcc.link RPATH <target-os>$(rpath-os) : <dll-path> ;
-@@ -934,8 +936,9 @@ toolset.flags gcc.link.dll .IMPLIB-COMMAND <target-os>cygwin : "-Wl,--out-implib
-     # search patterns!
- 
-     # On *nix mixing shared libs with static runtime is not a good idea.
--    toolset.flags gcc.link FINDLIBS-ST-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bstatic ;
--    toolset.flags gcc.link FINDLIBS-SA-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bdynamic ;
-+# z/OS does not do -Bstatic/dynamic
-+    #toolset.flags gcc.link FINDLIBS-ST-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bstatic ;
-+    #toolset.flags gcc.link FINDLIBS-SA-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bdynamic ;
- 
-     # On windows allow mixing of static and dynamic libs with static
-     # runtime is not a good idea.

@@ -1,0 +1,51 @@
+diff --git a/src/tools/gcc.jam b/src/tools/gcc.jam
+index e5f8f53a4..2b3a71719 100644
+--- a/src/tools/gcc.jam
++++ b/src/tools/gcc.jam
+@@ -397,7 +397,9 @@ local rule compile-link-flags ( * )
+     # The default system libraries include pthread functions.  No additional libraries or CFLAGS are necessary to use this API.
+     local no-threading = android beos haiku sgi darwin vxworks iphone appletv ;
+     local threading-generic-os = [ set.difference $(all-os) : $(no-threading) $(bsd) windows cygwin solaris qnx ] ;
+-    threading-flags <target-os>$(threading-generic-os) : -pthread : rt ;
++    #threading-flags <target-os>$(threading-generic-os) : -pthread : rt ;
++    # z/OS does not need -pthread
++    #threading-flags <target-os>$(threading-generic-os) : -pthread : rt ;
+ }
+ 
+ {
+@@ -897,9 +899,10 @@ toolset.flags gcc.link OPTIONS <coverage>on : --coverage ;
+     # support -s.
+     toolset.flags gcc.link OPTIONS <target-os>$(generic-os)/<strip>on :
+         -Wl,--strip-all ;
+-    toolset.flags gcc.link START-GROUP <target-os>$(generic-os) :
+-        -Wl,--start-group ;
+-    toolset.flags gcc.link END-GROUP <target-os>$(generic-os) : -Wl,--end-group ;
++# z/OS does not need start-/end-group
++    #toolset.flags gcc.link START-GROUP <target-os>$(generic-os) :
++     #   -Wl,--start-group ;
++    #toolset.flags gcc.link END-GROUP <target-os>$(generic-os) : -Wl,--end-group ;
+ 
+     local rpath-os = [ set.difference $(all-os) : aix darwin vxworks solaris osf hpux windows ] ;
+     toolset.flags gcc.link RPATH <target-os>$(rpath-os) : <dll-path> ;
+@@ -939,8 +942,9 @@ toolset.flags gcc.link OPTIONS <coverage>on : --coverage ;
+     # search patterns!
+ 
+     # On *nix mixing shared libs with static runtime is not a good idea.
+-    toolset.flags gcc.link FINDLIBS-ST-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bstatic ;
+-    toolset.flags gcc.link FINDLIBS-SA-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bdynamic ;
++    # # z/OS does not do -Bstatic/dynamic
++    #toolset.flags gcc.link FINDLIBS-ST-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bstatic ;
++    #toolset.flags gcc.link FINDLIBS-SA-PFX <target-os>$(generic-os)/<runtime-link>shared : -Wl,-Bdynamic ;
+ 
+     # On windows allow mixing of static and dynamic libs with static
+     # runtime is not a good idea.
+@@ -950,7 +954,8 @@ toolset.flags gcc.link OPTIONS <coverage>on : --coverage ;
+ 
+     local soname-os = [ set.difference $(generic-os) : windows ] ;
+     toolset.flags gcc.link HAVE_SONAME <target-os>$(soname-os) : "" ;
+-    toolset.flags gcc.link SONAME_OPTION <target-os>$(soname-os) : -soname ;
++    #toolset.flags gcc.link SONAME_OPTION <target-os>$(soname-os) : "" ;
++    #toolset.flags gcc.link SONAME_OPTION <target-os>$(soname-os) : -soname ;
+ 
+     # See note [1]
+     toolset.flags gcc.link OPTIONS <target-os>$(generic-os)/<runtime-link>static : -static ;

@@ -1,21 +1,37 @@
 export ZOPEN_STABLE_URL="https://github.com/boostorg/boost.git"
-#export ZOPEN_STABLE_TAG="boost-1.82.0"
-export ZOPEN_DEV_BRANCH="boost-1.82.0"
+export ZOPEN_DEV_TAG="boost-1.82.0"
 export ZOPEN_STABLE_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
 export ZOPEN_DEV_URL="https://github.com/boostorg/boost.git"
-export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
+export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq git findutils diffutils bzip2 zlib"
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
 export ZOPEN_CXXFLAGS ="-m64"
 
-export ZOPEN_BOOTSTRAP="./bootstrap.sh"
+export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
 export ZOPEN_CONFIGURE=skip
 export ZOPEN_CLEAN=skip
-export ZOPEN_MAKE="./b2"
+export ZOPEN_MAKE="zopen_build"
 export ZOPEN_MAKE_MINIMAL="yes"
 export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
+
+
+zopen_bootstrap()
+{
+        echo "In bootstrap"
+        echo `pwd`
+        ./bootstrap.sh -with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+}
+
+zopen_build()
+{
+        echo "In build"
+        echo `pwd`
+        cd $ZOPEN_ROOT/boost 
+        echo `pwd`
+        ./b2
+}
 
 zopen_init()
 {
@@ -24,49 +40,92 @@ zopen_init()
 
   #boostrap.sh path -> located at ./boost/bootstrap.sh
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/fix_fileunix"
-  git apply $ZOPEN_ROOT/patches/bootstrap.diff
+  git apply $ZOPEN_ROOT/patches/bootstrap.sh.patch
 
   # aligned_alloc.hpp patch -> located at ./boost/libs/align/aligned_alloc.hpp
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/align.diff"
   cd libs/align 
-  git apply $ZOPEN_ROOT/patches/align.diff
+  git apply $ZOPEN_ROOT/patches/align.patch
   cd -
 
   # asio directory  patch -> located at ./boost/libs/asio
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/asio.diff"
   cd libs/asio
-  git apply $ZOPEN_ROOT/patches/asio.diff
+  git apply $ZOPEN_ROOT/patches/asio.patch
   cd -
 
   # math directory  patch -> located at ./boost/libs/math
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/math.diff"
   cd libs/math
-  git apply $ZOPEN_ROOT/patches/math.diff
+  git apply $ZOPEN_ROOT/patches/math.patch
   cd -
 
   # multiprecision directory  patch -> located at ./boost/libs/multiprecision
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/multiprecision.diff"
   cd libs/multiprecision
-  git apply $ZOPEN_ROOT/patches/multiprecision.diff
+  git apply $ZOPEN_ROOT/patches/multiprecision.patch
   cd -
 
   # thread directory  patch -> located at ./boost/libs/thread
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/thread.diff"
   cd libs/thread
-  git apply $ZOPEN_ROOT/patches/thread.diff
+  git apply $ZOPEN_ROOT/patches/thread.patch
   cd -
 
   # build directory  patch -> located at ./boost/tools/build
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/build.diff"
-  cd tools/build
-  git apply $ZOPEN_ROOT/patches/build.diff
-  #git apply $ZOPEN_ROOT/patches/build_without_clang-linux.diff
+  cd tools/build/
+  git apply $ZOPEN_ROOT/patches/src_engine.patch
+  git apply $ZOPEN_ROOT/patches/gcc.jam.patch
+  git apply $ZOPEN_ROOT/patches/toolset.jam.patch
+  git apply $ZOPEN_ROOT/patches/clang.jam.patch
+  git apply $ZOPEN_ROOT/patches/intel-linux.jam.patch
+  git apply $ZOPEN_ROOT/patches/pathscale.jam.patch
+  git apply $ZOPEN_ROOT/patches/pgi.jam.patch
+  git apply $ZOPEN_ROOT/patches/vacpp.jam.patch
+  git apply $ZOPEN_ROOT/patches/xlcpp.jam.patch
+  git apply $ZOPEN_ROOT/patches/clang-linux-3.9.0.py.patch
+  git apply $ZOPEN_ROOT/patches/gcc-4.8.3-linux.py.patch
   cd -
+  
+  cd ./libs/iostreams
+  git apply $ZOPEN_ROOT/patches/iostreams.Jamfile.v2.patch
+  cd -
+
+  cd ./libs/chrono
+  git apply $ZOPEN_ROOT/patches/chrono.hpp.patch
+  cd -
+
+  cd ./libs/chrono
+  git apply $ZOPEN_ROOT/patches/system_clocks.hpp.patch
+  cd -
+  echo `pwd`
+  #git apply $ZOPEN_ROOT/patches/build_without_clang-linux.diff
 }
 
 zopen_pre_configure()
 {
-  sed -i 's/using clang ;/using clang : : "ibm-clang++64" : <cxxflags>" -DNDEBUG -march=arch10 -O3 -m64 -D_XOPEN_SOURCE=600 -D_UNIX03_THREADS -D_POSIX_THREADS -D_OPEN_SYS_FILE_EXT -fasm -fzos-le-char-mode=ascii -fno-short-enums" ;/g' project-config.jam 
+  var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -O3 -m64 -D_XOPEN_SOURCE=600 -D_UNIX03_THREADS -D_POSIX_THREADS -D_OPEN_SYS_FILE_EXT -fasm -fzos-le-char-mode=ascii -fno-short-enums '\\${ZOPEN_EXTRA_CPPFLAGS}' '\\${ZOPEN_EXTRA_CFLAGS}' '\\${ZOPEN_EXTRA_CXXFLAGS}' : 14.0.0 ;"
+ awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
+
+awk -v CPPFLAGS="$CPPFLAGS" -v CXXFLAGS="$CXXFLAGS" -v ZOPEN_EXTRA_LDFLAGS="$ZOPEN_EXTRA_LDFLAGS" -v LIBS="$LIBS" '
+    /<toolset>como-linux:<define>_GNU_SOURCE=1/ {
+        print
+        if (getline next_line && index(next_line, "cxxflags") == 0) {
+            if (length(CPPFLAGS) > 0 || length(CXXFLAGS) > 0) {
+                print "<toolset>clang:<cxxflags>\"" CPPFLAGS " " CXXFLAGS "\""
+            }
+            if (length(ZOPEN_EXTRA_LDFLAGS) > 0 || length(LIBS) > 0) {
+                print "<toolset>clang:<linkflags>\"" ZOPEN_EXTRA_LDFLAGS " " LIBS "\""
+            }
+        } else {
+            print next_line
+        }
+        next
+    }
+    1
+' Jamroot > temp && mv temp Jamroot
+cd -
 }
 zopen_check_results()
 {
@@ -95,5 +154,6 @@ zopen_get_version()
 {
   # Modify to echo the version of your tool/library
   # Rather than hardcoding the version, obtain the version by running the tool/library
+#echo "${ZOPEN_DEV_TAG}" | cut -d'-' -f2
   echo "1.0.0"
 }

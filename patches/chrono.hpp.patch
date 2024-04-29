@@ -1,0 +1,23 @@
+diff --git a/include/boost/chrono/detail/inlined/posix/chrono.hpp b/include/boost/chrono/detail/inlined/posix/chrono.hpp
+index 8baac39..0cddef3 100644
+--- a/include/boost/chrono/detail/inlined/posix/chrono.hpp
++++ b/include/boost/chrono/detail/inlined/posix/chrono.hpp
+@@ -22,7 +22,8 @@ namespace chrono
+   system_clock::time_point system_clock::now() BOOST_NOEXCEPT
+   {
+     timespec ts;
+-    if ( ::clock_gettime( CLOCK_REALTIME, &ts ) )
++    //if ( ::clock_gettime( CLOCK_REALTIME, &ts ) )
++    if ( ::clock_gettime( CLOCK_MONOTONIC, &ts ) )
+     {
+       BOOST_ASSERT(0 && "Boost::Chrono - Internal Error");
+     }
+@@ -35,7 +36,7 @@ namespace chrono
+   system_clock::time_point system_clock::now(system::error_code & ec)
+   {
+     timespec ts;
+-    if ( ::clock_gettime( CLOCK_REALTIME, &ts ) )
++    if ( ::clock_gettime( CLOCK_MONOTONIC, &ts ) )
+     {
+         if (::boost::chrono::is_throws(ec))
+         {
