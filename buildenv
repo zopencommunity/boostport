@@ -15,8 +15,19 @@ export ZOPEN_CLEAN=skip
 export ZOPEN_MAKE="zopen_build"
 export ZOPEN_MAKE_MINIMAL="yes"
 export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
+export ZOPEN_INSTALL="zopen_install"
 
+zopen_post_install()
+{
+  find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
+}
 
+zopen_install()
+{
+        cd $ZOPEN_ROOT/boost
+        echo `pwd`
+        ./b2 install
+}
 zopen_bootstrap()
 {
         echo "In bootstrap"
