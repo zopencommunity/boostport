@@ -11,30 +11,36 @@ export ZOPEN_CXXFLAGS ="-m64"
 export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
 export ZOPEN_CONFIGURE=skip
+export ZOPEN_CHECK="zopen_check"
 export ZOPEN_CLEAN=skip
 export ZOPEN_MAKE="zopen_build"
 export ZOPEN_MAKE_MINIMAL="yes"
 export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
-export ZOPEN_INSTALL="zopen_install"
+#export ZOPEN_INSTALL="zopen_install"
+
+zopen_bootstrap()
+{
+        echo "In bootstrap"
+        echo `pwd`
+	./bootstrap.sh -with-libraries=thread,chrono,container,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR        
+	#./bootstrap.sh -with-libraries=filesystem --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+}
 
 zopen_post_install()
 {
+  echo "Dh install dir = $ZOPEN_INSTALL_DIR" 
+  echo `pwd`
   find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
 }
 
 zopen_install()
 {
+        echo "In install"
+        echo `pwd`
         cd $ZOPEN_ROOT/boost
         echo `pwd`
         ./b2 install
 }
-zopen_bootstrap()
-{
-        echo "In bootstrap"
-        echo `pwd`
-        ./bootstrap.sh -with-libraries=thread,chrono,container --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
-}
-
 zopen_build()
 {
         echo "In build"
@@ -42,8 +48,27 @@ zopen_build()
         cd $ZOPEN_ROOT/boost 
         echo `pwd`
         ./b2
+        echo "b2 done $ZOPEN_ROOT"
+        echo "generate headers ............"
+        ./b2 headers
 }
 
+zopen_check()
+{
+       echo "In check"
+       echo `pwd`
+       cd $ZOPEN_ROOT/boost/libs/chrono/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
+       cd $ZOPEN_ROOT/boost/libs/thread/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
+       echo "dh done check" 
+       #./b2 --with-test 
+
+}
 zopen_init()
 {
   # This runs after clone & regular patches are applied
@@ -80,7 +105,9 @@ zopen_init()
   # thread directory  patch -> located at ./boost/libs/thread
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/thread.diff"
   cd libs/thread
-  git apply $ZOPEN_ROOT/patches/thread.patch
+  git apply $ZOPEN_ROOT/patches/thread.hpp.patch
+  git apply $ZOPEN_ROOT/patches/thread_data.hpp.patch
+  git apply $ZOPEN_ROOT/patches/pthread_helpers.hpp.patch
   cd -
 
   # build directory  patch -> located at ./boost/tools/build
@@ -105,10 +132,17 @@ zopen_init()
 
   cd ./libs/chrono
   git apply $ZOPEN_ROOT/patches/chrono.hpp.patch
+  git apply $ZOPEN_ROOT/patches/chrono_io.hpp.patch
+  git apply $ZOPEN_ROOT/patches/time_point_io.hpp.patch
+  git apply $ZOPEN_ROOT/patches/runtime_resolution.cpp.patch
+  git apply $ZOPEN_ROOT/patches/timeval_demo.cpp.patch
+  git apply $ZOPEN_ROOT/patches/time_point_io.hpp.patch
+  git apply $ZOPEN_ROOT/patches/duration_duration_fail.cpp.patch
+  git apply $ZOPEN_ROOT/patches/system_clocks.hpp.patch
   cd -
 
-  cd ./libs/chrono
-  git apply $ZOPEN_ROOT/patches/system_clocks.hpp.patch
+  cd ./libs/test
+  git apply $ZOPEN_ROOT/patches/execution_monitor.ipp.patch
   cd -
   echo `pwd`
 }
@@ -142,12 +176,20 @@ zopen_check_results()
   dir="$1"
   pfx="$2"
   chk="$1/$2_check.log"
+  failures=$(egrep "^\.\.\.failed" $chk | wc -l) 
+  failures_as_expected=$(egrep "^(failed-as-expected)" $chk | wc -l) 
+  skipped=$(egrep "^\.\.\.skipped" $chk | wc -l)
+  passed=$(egrep "^\*\*passed" $chk | wc -l)
+  #passed=$(($failures_as_expected+$passed))
+  totalTests=$(($failures+$skipped+$passed+$failures_as_expected))
+
 
   # Echo the following information to gauge build health
-  echo "actualFailures:0"
-  echo "totalTests:1"
-  echo "expectedFailures:0"
-  echo "expectedTotalTests:1"
+cat <<ZZ
+  actualFailures:${failures}
+  totalTests:${totalTests}
+  expectedFailures:400
+ZZ
 }
 
 zopen_append_to_env()
