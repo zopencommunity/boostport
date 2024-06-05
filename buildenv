@@ -1,5 +1,4 @@
 export ZOPEN_STABLE_URL="https://github.com/boostorg/boost.git"
-export ZOPEN_DEV_TAG="boost-1.82.0"
 export ZOPEN_STABLE_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
 export ZOPEN_DEV_URL="https://github.com/boostorg/boost.git"
 export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq git findutils diffutils bzip2 zlib"
@@ -16,19 +15,17 @@ export ZOPEN_CLEAN=skip
 export ZOPEN_MAKE="zopen_build"
 export ZOPEN_MAKE_MINIMAL="yes"
 export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
-#export ZOPEN_INSTALL="zopen_install"
+export ZOPEN_INSTALL="zopen_install"
 
 zopen_bootstrap()
 {
         echo "In bootstrap"
         echo `pwd`
 	./bootstrap.sh -with-libraries=thread,chrono,container,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR        
-	#./bootstrap.sh -with-libraries=filesystem --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
 }
 
 zopen_post_install()
 {
-  echo "Dh install dir = $ZOPEN_INSTALL_DIR" 
   echo `pwd`
   find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
 }
@@ -65,8 +62,6 @@ zopen_check()
        $ZOPEN_ROOT/boost/b2 --clean
        $ZOPEN_ROOT/boost/b2
        cd -
-       echo "dh done check" 
-       #./b2 --with-test 
 
 }
 zopen_init()
@@ -76,74 +71,78 @@ zopen_init()
 
   #boostrap.sh path -> located at ./boost/bootstrap.sh
   echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/fix_fileunix"
-  git apply $ZOPEN_ROOT/patches/bootstrap.sh.patch
+  git apply $ZOPEN_ROOT/boostPatches/bootstrap.sh.patch
 
   # aligned_alloc.hpp patch -> located at ./boost/libs/align/aligned_alloc.hpp
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/align.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/align.patch"
   cd libs/align 
-  git apply $ZOPEN_ROOT/patches/align.patch
+  git apply $ZOPEN_ROOT/boostPatches/align.patch
   cd -
 
   # asio directory  patch -> located at ./boost/libs/asio
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/asio.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/asio.patch"
   cd libs/asio
-  git apply $ZOPEN_ROOT/patches/asio.patch
+  git apply $ZOPEN_ROOT/boostPatches/asio.patch
   cd -
 
   # math directory  patch -> located at ./boost/libs/math
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/math.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/math.patch"
   cd libs/math
-  git apply $ZOPEN_ROOT/patches/math.patch
+  git apply $ZOPEN_ROOT/boostPatches/math.patch
   cd -
 
   # multiprecision directory  patch -> located at ./boost/libs/multiprecision
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/multiprecision.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/multiprecision.patch"
   cd libs/multiprecision
-  git apply $ZOPEN_ROOT/patches/multiprecision.patch
+  git apply $ZOPEN_ROOT/boostPatches/multiprecision.patch
   cd -
 
   # thread directory  patch -> located at ./boost/libs/thread
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/thread.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/thread.patch"
   cd libs/thread
-  git apply $ZOPEN_ROOT/patches/thread.hpp.patch
-  git apply $ZOPEN_ROOT/patches/thread_data.hpp.patch
-  git apply $ZOPEN_ROOT/patches/pthread_helpers.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/thread.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/thread_data.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/pthread_helpers.hpp.patch
   cd -
 
   # build directory  patch -> located at ./boost/tools/build
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/build.diff"
+  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/boostPatches/build.patch"
   cd tools/build/
-  git apply $ZOPEN_ROOT/patches/src_engine.patch
-  git apply $ZOPEN_ROOT/patches/gcc.jam.patch
-  git apply $ZOPEN_ROOT/patches/toolset.jam.patch
-  git apply $ZOPEN_ROOT/patches/clang.jam.patch
-  git apply $ZOPEN_ROOT/patches/intel-linux.jam.patch
-  git apply $ZOPEN_ROOT/patches/pathscale.jam.patch
-  git apply $ZOPEN_ROOT/patches/pgi.jam.patch
-  git apply $ZOPEN_ROOT/patches/vacpp.jam.patch
-  git apply $ZOPEN_ROOT/patches/xlcpp.jam.patch
-  git apply $ZOPEN_ROOT/patches/clang-linux-3.9.0.py.patch
-  git apply $ZOPEN_ROOT/patches/gcc-4.8.3-linux.py.patch
+  git apply $ZOPEN_ROOT/boostPatches/src_engine.patch
+  git apply $ZOPEN_ROOT/boostPatches/gcc.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/toolset.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/clang.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/intel-linux.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/pathscale.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/pgi.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/vacpp.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/xlcpp.jam.patch
+  git apply $ZOPEN_ROOT/boostPatches/clang-linux-3.9.0.py.patch
+  git apply $ZOPEN_ROOT/boostPatches/gcc-4.8.3-linux.py.patch
   cd -
   
   cd ./libs/iostreams
-  git apply $ZOPEN_ROOT/patches/iostreams.Jamfile.v2.patch
+  git apply $ZOPEN_ROOT/boostPatches/iostreams.Jamfile.v2.patch
   cd -
 
   cd ./libs/chrono
-  git apply $ZOPEN_ROOT/patches/chrono.hpp.patch
-  git apply $ZOPEN_ROOT/patches/chrono_io.hpp.patch
-  git apply $ZOPEN_ROOT/patches/time_point_io.hpp.patch
-  git apply $ZOPEN_ROOT/patches/runtime_resolution.cpp.patch
-  git apply $ZOPEN_ROOT/patches/timeval_demo.cpp.patch
-  git apply $ZOPEN_ROOT/patches/time_point_io.hpp.patch
-  git apply $ZOPEN_ROOT/patches/duration_duration_fail.cpp.patch
-  git apply $ZOPEN_ROOT/patches/system_clocks.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/chrono.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/chrono_io.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/runtime_resolution.cpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/duration_duration_fail.cpp.patch
+  git apply $ZOPEN_ROOT/boostPatches/system_clocks.hpp.patch
   cd -
 
   cd ./libs/test
-  git apply $ZOPEN_ROOT/patches/execution_monitor.ipp.patch
+  git apply $ZOPEN_ROOT/boostPatches/execution_monitor.ipp.patch
   cd -
+
+  cd ./libs/filesystem
+  git apply $ZOPEN_ROOT/boostPatches/directory.cpp.patch 
+  cd -
+
   echo `pwd`
 }
 
@@ -180,7 +179,6 @@ zopen_check_results()
   failures_as_expected=$(egrep "^(failed-as-expected)" $chk | wc -l) 
   skipped=$(egrep "^\.\.\.skipped" $chk | wc -l)
   passed=$(egrep "^\*\*passed" $chk | wc -l)
-  #passed=$(($failures_as_expected+$passed))
   totalTests=$(($failures+$skipped+$passed+$failures_as_expected))
 
 
