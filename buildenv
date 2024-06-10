@@ -5,7 +5,6 @@ export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq git f
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
-export ZOPEN_CXXFLAGS ="-m64"
 
 export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
@@ -204,6 +203,5 @@ zopen_get_version()
 {
   # Modify to echo the version of your tool/library
   # Rather than hardcoding the version, obtain the version by running the tool/library
-#echo "${ZOPEN_DEV_TAG}" | cut -d'-' -f2
-  echo "1.0.0"
+  cat boost/version.hpp | grep "define BOOST_LIB_VERSION" | cut -d'"' -f2 | sed 's/_/./'
 }
