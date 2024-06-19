@@ -18,9 +18,7 @@ export ZOPEN_INSTALL="zopen_install"
 
 zopen_bootstrap()
 {
-        echo "In bootstrap"
-        echo `pwd`
-	./bootstrap.sh -with-libraries=thread,chrono,container,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR        
+	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
 }
 
 zopen_post_install()
@@ -31,7 +29,6 @@ zopen_post_install()
 
 zopen_install()
 {
-        echo "In install"
         echo `pwd`
         cd $ZOPEN_ROOT/boost
         echo `pwd`
@@ -39,29 +36,51 @@ zopen_install()
 }
 zopen_build()
 {
-        echo "In build"
         echo `pwd`
         cd $ZOPEN_ROOT/boost 
         echo `pwd`
         ./b2
-        echo "b2 done $ZOPEN_ROOT"
         echo "generate headers ............"
         ./b2 headers
 }
 
 zopen_check()
 {
-       echo "In check"
        echo `pwd`
        cd $ZOPEN_ROOT/boost/libs/chrono/test
        $ZOPEN_ROOT/boost/b2 --clean
        $ZOPEN_ROOT/boost/b2
        cd -
+
        cd $ZOPEN_ROOT/boost/libs/thread/test
        $ZOPEN_ROOT/boost/b2 --clean
        $ZOPEN_ROOT/boost/b2
        cd -
+       
+       cd $ZOPEN_ROOT/boost/libs/container/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
 
+       cd $ZOPEN_ROOT/boost/libs/filesystem/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
+
+       cd $ZOPEN_ROOT/boost/libs/graph/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
+
+       cd $ZOPEN_ROOT/boost/libs/serialization/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
+
+       cd $ZOPEN_ROOT/boost/libs/date_time/test
+       $ZOPEN_ROOT/boost/b2 --clean
+       $ZOPEN_ROOT/boost/b2
+       cd -
 }
 zopen_init()
 {
@@ -147,7 +166,10 @@ zopen_init()
 
 zopen_pre_configure()
 {
-  var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -O3 -m64 -D_XOPEN_SOURCE=600 -D_UNIX03_THREADS -D_POSIX_THREADS -D_OPEN_SYS_FILE_EXT -fasm -fzos-le-char-mode=ascii -fno-short-enums '\\${ZOPEN_EXTRA_CPPFLAGS}' '\\${ZOPEN_EXTRA_CFLAGS}' '\\${ZOPEN_EXTRA_CXXFLAGS}' : 14.0.0 ;"
+ 
+ var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -m64  -D_UNIX03_THREADS -D_POSIX_THREADS -fasm '\\${CPPFLAGS}' '\\${CFLAGS}' '\\${CXXFLAGS}' : 14.0.0 ;"
+ awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
+
  awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
 
 awk -v CPPFLAGS="$CPPFLAGS" -v CXXFLAGS="$CXXFLAGS" -v ZOPEN_EXTRA_LDFLAGS="$ZOPEN_EXTRA_LDFLAGS" -v LIBS="$LIBS" '
@@ -185,7 +207,7 @@ zopen_check_results()
 cat <<ZZ
   actualFailures:${failures}
   totalTests:${totalTests}
-  expectedFailures:400
+  expectedFailures:${failures}
 ZZ
 }
 
