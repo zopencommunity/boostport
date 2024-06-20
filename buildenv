@@ -167,7 +167,7 @@ zopen_init()
 zopen_pre_configure()
 {
  
- var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -m64  -D_UNIX03_THREADS -D_POSIX_THREADS -fasm '\\${CPPFLAGS}' '\\${CFLAGS}' '\\${CXXFLAGS}' : 14.0.0 ;"
+ var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -D_UNIX03_THREADS -D_POSIX_THREADS -fasm '\\${CPPFLAGS}' '\\${CFLAGS}' '\\${CXXFLAGS}' : 14.0.0 ;"
  awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
 
  awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
