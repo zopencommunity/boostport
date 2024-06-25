@@ -1,21 +1,95 @@
 export ZOPEN_STABLE_URL="https://github.com/boostorg/boost.git"
-#export ZOPEN_STABLE_TAG="boost-1.82.0"
-export ZOPEN_DEV_BRANCH="boost-1.82.0"
 export ZOPEN_STABLE_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
 export ZOPEN_DEV_URL="https://github.com/boostorg/boost.git"
-export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq"
+export ZOPEN_DEV_DEPS="cmake make zoslib which coreutils comp_clang sed jq git findutils diffutils bzip2 zlib"
 export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
-export ZOPEN_CXXFLAGS ="-m64"
 
-export ZOPEN_BOOTSTRAP="./bootstrap.sh"
+export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
 export ZOPEN_CONFIGURE=skip
+export ZOPEN_CHECK="zopen_check"
 export ZOPEN_CLEAN=skip
-export ZOPEN_MAKE="./b2"
+export ZOPEN_MAKE="zopen_build"
 export ZOPEN_MAKE_MINIMAL="yes"
 export GIT_DISCOVERY_ACROSS_FILESYSTEM="yes"
+export ZOPEN_INSTALL="zopen_install"
+
+zopen_bootstrap()
+{
+	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+}
+
+zopen_post_install()
+{
+  echo `pwd`
+  find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
+}
+
+zopen_install()
+{
+        echo `pwd`
+        cd $ZOPEN_ROOT/boost
+        echo `pwd`
+        ./b2 install
+}
+zopen_build()
+{
+        echo `pwd`
+        cd $ZOPEN_ROOT/boost 
+        echo `pwd`
+        ./b2
+        echo "generate headers ............"
+        ./b2 headers
+}
+
+# Function to test Boost libraries
+build_and_test_boost() {
+    local test_dir="$1"
+    cd "$test_dir" || {
+        echo "Error: Failed to change directory to $test_dir"
+        return 1
+    }
+    "$ZOPEN_ROOT/boost/b2" --clean
+    "$ZOPEN_ROOT/boost/b2"
+    cd -
+}
+
+zopen_check()
+{
+       echo `pwd`
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/chrono/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/thread/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/container/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/filesystem/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/graph/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/serialization/test"
+
+       build_and_test_boost "$ZOPEN_ROOT/boost/libs/date_time/test"
+}
+
+apply_patch() {
+    local patch_file="$1"
+
+    if [ -z "$patch_file" ]; then
+        echo "Error: No patch file specified ${patch_file}.."
+        return 1
+    fi
+
+    git apply "$patch_file"
+    if [ $? -ne 0 ]; then
+        echo "Error: git apply failed for $patch_file"
+        return 1
+    fi
+}
+
 
 zopen_init()
 {
@@ -23,62 +97,131 @@ zopen_init()
   # and runs before bootstrap, configure, build
 
   #boostrap.sh path -> located at ./boost/bootstrap.sh
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/fix_fileunix"
-  git apply $ZOPEN_ROOT/patches/bootstrap.diff
+  echo "In ZOPEN_INIT, applying patch to bootstrap"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/bootstrap.sh.patch"; then return 1; fi
 
   # aligned_alloc.hpp patch -> located at ./boost/libs/align/aligned_alloc.hpp
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/align.diff"
-  cd libs/align 
-  git apply $ZOPEN_ROOT/patches/align.diff
+  echo "In ZOPEN_INIT, applying patch to lib - align"
+  cd libs/align
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/align.patch"; then return 1; fi
   cd -
 
   # asio directory  patch -> located at ./boost/libs/asio
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/asio.diff"
+  echo "In ZOPEN_INIT, applying patch to lib - asio"
   cd libs/asio
-  git apply $ZOPEN_ROOT/patches/asio.diff
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/asio.patch"; then return 1; fi
   cd -
 
   # math directory  patch -> located at ./boost/libs/math
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/math.diff"
+  echo "In ZOPEN_INIT, applying patch to lib - math"
   cd libs/math
-  git apply $ZOPEN_ROOT/patches/math.diff
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/math.patch"; then return 1; fi
   cd -
 
   # multiprecision directory  patch -> located at ./boost/libs/multiprecision
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/multiprecision.diff"
+  echo "In ZOPEN_INIT, applying patch to lib - multiprecision"
   cd libs/multiprecision
-  git apply $ZOPEN_ROOT/patches/multiprecision.diff
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/multiprecision.patch"; then return 1; fi
   cd -
 
   # thread directory  patch -> located at ./boost/libs/thread
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/thread.diff"
+  echo "In ZOPEN_INIT, applying patch to lib - thread"
   cd libs/thread
-  git apply $ZOPEN_ROOT/patches/thread.diff
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/thread.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/thread_data.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/pthread_helpers.hpp.patch"; then return 1; fi
   cd -
 
   # build directory  patch -> located at ./boost/tools/build
-  echo "In ZOPEN_INIT, applying patch to $ZOPEN_ROOT/patches/build.diff"
-  cd tools/build
-  git apply $ZOPEN_ROOT/patches/build.diff
-  #git apply $ZOPEN_ROOT/patches/build_without_clang-linux.diff
+  echo "In ZOPEN_INIT, applying patch to tools/build"
+  cd tools/build/
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/src_engine.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/gcc.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/toolset.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/clang.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/intel-linux.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/pathscale.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/pgi.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/vacpp.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/xlcpp.jam.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/clang-linux-3.9.0.py.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/gcc-4.8.3-linux.py.patch"; then return 1; fi
   cd -
+
+  cd ./libs/iostreams
+  echo "In ZOPEN_INIT, applying patch to lib - iostreams"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/iostreams.Jamfile.v2.patch"; then return 1; fi
+  cd -
+
+  cd ./libs/chrono
+  echo "In ZOPEN_INIT, applying patch to lib - chrono"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/chrono.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/chrono_io.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/runtime_resolution.cpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/duration_duration_fail.cpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/system_clocks.hpp.patch"; then return 1; fi
+  cd -
+
+  cd ./libs/test
+  echo "In ZOPEN_INIT, applying patch to lib - test framework"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/execution_monitor.ipp.patch"; then return 1; fi
+  cd -
+
+  cd ./libs/filesystem
+  echo "In ZOPEN_INIT, applying patch to lib - filesystem"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/directory.cpp.patch"; then return 1; fi
+  cd -
+
+  echo `pwd`
 }
 
 zopen_pre_configure()
 {
-  sed -i 's/using clang ;/using clang : : "ibm-clang++64" : <cxxflags>" -DNDEBUG -march=arch10 -O3 -m64 -D_XOPEN_SOURCE=600 -D_UNIX03_THREADS -D_POSIX_THREADS -D_OPEN_SYS_FILE_EXT -fasm -fzos-le-char-mode=ascii -fno-short-enums" ;/g' project-config.jam 
+ 
+ var="using clang : clang++ : <compileflags>-DNDEBUG -march=arch10 -D_UNIX03_THREADS -D_POSIX_THREADS -fasm '\\${CPPFLAGS}' '\\${CFLAGS}' '\\${CXXFLAGS}' : 14.0.0 ;"
+ awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
+
+ awk -v var="$var" '{gsub("using clang ;", var)}1' project-config.jam > temp_file && mv temp_file project-config.jam
+
+awk -v CPPFLAGS="$CPPFLAGS" -v CXXFLAGS="$CXXFLAGS" -v ZOPEN_EXTRA_LDFLAGS="$ZOPEN_EXTRA_LDFLAGS" -v LIBS="$LIBS" '
+    /<toolset>como-linux:<define>_GNU_SOURCE=1/ {
+        print
+        if (getline next_line && index(next_line, "cxxflags") == 0) {
+            if (length(CPPFLAGS) > 0 || length(CXXFLAGS) > 0) {
+                print "<toolset>clang:<cxxflags>\"" CPPFLAGS " " CXXFLAGS "\""
+            }
+            if (length(ZOPEN_EXTRA_LDFLAGS) > 0 || length(LIBS) > 0) {
+                print "<toolset>clang:<linkflags>\"" ZOPEN_EXTRA_LDFLAGS " " LIBS "\""
+            }
+        } else {
+            print next_line
+        }
+        next
+    }
+    1
+' Jamroot > temp && mv temp Jamroot
+cd -
 }
 zopen_check_results()
 {
   dir="$1"
   pfx="$2"
   chk="$1/$2_check.log"
+  failures=$(egrep "^\.\.\.failed" $chk | wc -l) 
+  failures_as_expected=$(egrep "^(failed-as-expected)" $chk | wc -l) 
+  skipped=$(egrep "^\.\.\.skipped" $chk | wc -l)
+  passed=$(egrep "^\*\*passed" $chk | wc -l)
+  totalTests=$(($failures+$skipped+$passed+$failures_as_expected))
+
 
   # Echo the following information to gauge build health
-  echo "actualFailures:0"
-  echo "totalTests:1"
-  echo "expectedFailures:0"
-  echo "expectedTotalTests:1"
+cat <<ZZ
+  actualFailures:${failures}
+  totalTests:${totalTests}
+  expectedFailures:${failures}
+ZZ
 }
 
 zopen_append_to_env()
@@ -95,5 +238,5 @@ zopen_get_version()
 {
   # Modify to echo the version of your tool/library
   # Rather than hardcoding the version, obtain the version by running the tool/library
-  echo "1.0.0"
+  cat boost/version.hpp | grep "define BOOST_LIB_VERSION" | cut -d'"' -f2 | sed 's/_/./'
 }
