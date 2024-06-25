@@ -77,10 +77,16 @@ zopen_check()
 
 apply_patch() {
     local patch_file="$1"
+
+    if [ -z "$patch_file" ]; then
+        echo "Error: No patch file specified ${patch_file}.."
+        return 1
+    fi
+
     git apply "$patch_file"
     if [ $? -ne 0 ]; then
         echo "Error: git apply failed for $patch_file"
-        exit 1
+        return 1
     fi
 }
 
