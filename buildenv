@@ -76,7 +76,7 @@ zopen_check()
 }
 
 apply_patch() {
-    local patch_file="$1"
+    patch_file="$1"
 
     if [ -z "$patch_file" ]; then
         echo "Error: No patch file specified ${patch_file}.."
