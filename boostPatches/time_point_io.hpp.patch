@@ -1,0 +1,14 @@
+diff --git a/include/boost/chrono/io/time_point_io.hpp b/include/boost/chrono/io/time_point_io.hpp
+index 93e04e2..36f9e84 100644
+--- a/include/boost/chrono/io/time_point_io.hpp
++++ b/include/boost/chrono/io/time_point_io.hpp
+@@ -39,7 +39,8 @@
+   || (defined __IBMCPP__) \
+   || defined __ANDROID__ \
+   || defined __QNXNTO__ \
+-  || (defined(_AIX) && defined __GNUC__)
++  || (defined(_AIX) && defined __GNUC__) \
++  || (defined __MVS__)
+ #define  BOOST_CHRONO_INTERNAL_TIMEGM
+ #endif
+ 

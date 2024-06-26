@@ -1,0 +1,28 @@
+diff --git a/src/directory.cpp b/src/directory.cpp
+index 0cf5025..9020e44 100644
+--- a/src/directory.cpp
++++ b/src/directory.cpp
+@@ -131,7 +131,10 @@ boost::scope::unique_fd open_directory(path const& p, directory_options opts, sy
+ {
+     ec.clear();
+ 
+-    int flags = O_DIRECTORY | O_RDONLY | O_NONBLOCK | O_CLOEXEC;
++    int flags = 0;
++#ifdef O_DIRECTORY
++    flags = O_DIRECTORY | O_RDONLY | O_NONBLOCK | O_CLOEXEC;
++#endif
+ 
+ #if defined(BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW)
+     if ((opts & directory_options::_detail_no_follow) != directory_options::none)
+@@ -178,7 +181,10 @@ boost::scope::unique_fd openat_directory(int basedir_fd, path const& p, director
+ {
+     ec.clear();
+ 
+-    int flags = O_DIRECTORY | O_RDONLY | O_NONBLOCK | O_CLOEXEC;
++    int flags = 0;
++#ifdef O_DIRECTORY
++    flags = O_DIRECTORY | O_RDONLY | O_NONBLOCK | O_CLOEXEC;
++#endif
+ 
+ #if defined(BOOST_FILESYSTEM_HAS_FDOPENDIR_NOFOLLOW)
+     if ((opts & directory_options::_detail_no_follow) != directory_options::none)

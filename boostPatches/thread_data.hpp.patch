@@ -1,0 +1,30 @@
+diff --git a/include/boost/thread/pthread/thread_data.hpp b/include/boost/thread/pthread/thread_data.hpp
+index c43b276d..9c670683 100644
+--- a/include/boost/thread/pthread/thread_data.hpp
++++ b/include/boost/thread/pthread/thread_data.hpp
+@@ -146,7 +146,12 @@ namespace boost
+             bool interrupt_requested;
+ //#endif
+             thread_data_base():
++#ifndef __MVS__
+                 thread_handle(0),
++#else
++                // pthread_t isn't a number on z/OS
++                thread_handle(),
++#endif
+                 done(false),join_started(false),joined(false),
+                 thread_exit_callbacks(0),
+ //#if defined BOOST_THREAD_PROVIDES_INTERRUPTIONS
+@@ -161,7 +166,12 @@ namespace boost
+                 , interrupt_enabled(true)
+                 , interrupt_requested(false)
+ //#endif
++#ifndef __MVS__
+             {}
++#else
++            // need memset() since pthread_t isn't a number on z/OS
++            { memset(&thread_handle, 0, sizeof(pthread_t)); }
++#endif
+             virtual ~thread_data_base();
+ 
+             typedef pthread_t native_handle_type;

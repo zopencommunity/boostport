@@ -1,0 +1,18 @@
+diff --git a/include/boost/chrono/system_clocks.hpp b/include/boost/chrono/system_clocks.hpp
+index a808ca7..968f685 100644
+--- a/include/boost/chrono/system_clocks.hpp
++++ b/include/boost/chrono/system_clocks.hpp
+@@ -68,11 +68,11 @@ TODO:
+ #include <ctime>
+ 
+ # if defined( BOOST_CHRONO_POSIX_API )
+-#   if ! defined(CLOCK_REALTIME) && ! defined (__hpux__)
++#   if ! defined(CLOCK_REALTIME) && ! defined (__hpux__)  && ! defined (__MVS__)
+ #     error <time.h> does not supply CLOCK_REALTIME
+ #   endif
+ # endif
+-
++#define 	CLOCK_REALTIME   0
+ #ifdef BOOST_CHRONO_WINDOWS_API
+ // The system_clock tick is 100 nanoseconds
+ # define BOOST_SYSTEM_CLOCK_DURATION boost::chrono::duration<boost::int_least64_t, ratio<BOOST_RATIO_INTMAX_C(1), BOOST_RATIO_INTMAX_C(10000000)> >

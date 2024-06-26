@@ -1,0 +1,14 @@
+diff --git a/src/tools/xlcpp.jam b/src/tools/xlcpp.jam
+index 7d3c601c4..91db68679 100644
+--- a/src/tools/xlcpp.jam
++++ b/src/tools/xlcpp.jam
+@@ -147,7 +147,8 @@ actions xlcpp.link bind NEEDLIBS
+ 
+ actions xlcpp.link.dll bind NEEDLIBS
+ {
+-    xlC -G $(LINKFLAGS) -o "$(<[1])" $(HAVE_SONAME)-Wl,-soname$(SPACE)-Wl,$(<[-1]:D=) -L$(LIBPATH) -L$(STDLIBPATH) "$(>)" "$(NEEDLIBS)" "$(NEEDLIBS)" -l$(FINDLIBS) $(OPTIONS) $(USER_OPTIONS)
++    xlC -G $(LINKFLAGS) -o "$(<[1])" -o $(<[-1]:D=) -L$(LIBPATH) -L$(STDLIBPATH) "$(>)" "$(NEEDLIBS)" "$(NEEDLIBS)" -l$(FINDLIBS) $(OPTIONS) $(USER_OPTIONS)
++    #xlC -G $(LINKFLAGS) -o "$(<[1])" $(HAVE_SONAME)-Wl,-soname$(SPACE)-Wl,$(<[-1]:D=) -L$(LIBPATH) -L$(STDLIBPATH) "$(>)" "$(NEEDLIBS)" "$(NEEDLIBS)" -l$(FINDLIBS) $(OPTIONS) $(USER_OPTIONS)
+ }
+ 
+ actions xlcpp.compile.c

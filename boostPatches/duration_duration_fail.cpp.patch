@@ -1,0 +1,12 @@
+diff --git a/test/duration/duration_duration_fail.cpp b/test/duration/duration_duration_fail.cpp
+index 19e6928..431b6eb 100644
+--- a/test/duration/duration_duration_fail.cpp
++++ b/test/duration/duration_duration_fail.cpp
+@@ -19,6 +19,6 @@
+ 
+ void test()
+ {
+-    typedef boost::chrono::duration<boost::chrono::milliseconds> D;
++    typedef boost::chrono::milliseconds D;
+     D d;
+ }
