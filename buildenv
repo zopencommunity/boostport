@@ -159,7 +159,6 @@ zopen_init()
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/chrono_io.hpp.patch"; then return 1; fi
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch"; then return 1; fi
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/runtime_resolution.cpp.patch"; then return 1; fi
-  if ! apply_patch "$ZOPEN_ROOT/boostPatches/time_point_io.hpp.patch"; then return 1; fi
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/duration_duration_fail.cpp.patch"; then return 1; fi
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/system_clocks.hpp.patch"; then return 1; fi
   cd -
