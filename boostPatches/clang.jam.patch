@@ -1,0 +1,13 @@
+diff --git a/src/tools/clang.jam b/src/tools/clang.jam
+index 221d37d5e..524ee216a 100644
+--- a/src/tools/clang.jam
++++ b/src/tools/clang.jam
+@@ -30,7 +30,7 @@ rule init ( * : * )
+     else
+     {
+         toolset.using clang-linux :
+-          $(1) : $(2) : $(3) : $(4) : $(5) : $(6) : $(7) : $(8) : $(9) ;
++          $(1) : $(2) : $(3) : $(4) : $(5) : $(6) : $(7) : $(8) ;
+     }
+ }
+ 

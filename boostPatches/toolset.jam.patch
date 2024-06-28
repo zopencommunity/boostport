@@ -1,0 +1,13 @@
+diff --git a/src/build/toolset.jam b/src/build/toolset.jam
+index 1fce54c26..bcdb5c6f5 100644
+--- a/src/build/toolset.jam
++++ b/src/build/toolset.jam
+@@ -40,7 +40,7 @@ if --ignore-toolset-requirements in [ modules.peek : ARGV ]
+ rule using ( toolset-module : * )
+ {
+     import $(toolset-module) ;
+-    $(toolset-module).init $(2) : $(3) : $(4) : $(5) : $(6) : $(7) : $(8) : $(9)
++    $(toolset-module).init $(3) : $(4) : $(5) : $(6) : $(7) : $(8) : $(9)
+         ;
+ }
+ 

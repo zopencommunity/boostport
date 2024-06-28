@@ -1,0 +1,13 @@
+diff --git a/example/runtime_resolution.cpp b/example/runtime_resolution.cpp
+index 29c4114..0125b3e 100644
+--- a/example/runtime_resolution.cpp
++++ b/example/runtime_resolution.cpp
+@@ -208,7 +208,7 @@ public:
+ 
+ #elif defined(BOOST_CHRONO_POSIX_API)
+     timespec ts;
+-    ::clock_gettime( CLOCK_REALTIME, &ts );
++    ::clock_gettime( CLOCK_MONOTONIC, &ts );
+ 
+     return time_point(duration((static_cast<rep>(ts.tv_sec)<<32) | ts.tv_nsec/1000));
+ 

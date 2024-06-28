@@ -1,0 +1,95 @@
+diff --git a/include/boost/thread/detail/thread.hpp b/include/boost/thread/detail/thread.hpp
+index 37173110..8b49923c 100644
+--- a/include/boost/thread/detail/thread.hpp
++++ b/include/boost/thread/detail/thread.hpp
+@@ -609,7 +609,12 @@ namespace boost
+         hash_value(const thread::id &v)
+         {
+ #if defined BOOST_THREAD_PROVIDES_BASIC_THREAD_ID
++#ifndef __MVS__
+           return hash_value(v.thread_data);
++#else
++          // treat thread_data (pthread_t) as if it's a uint64_t
++          return hash_value(*(uint64_t*)(&v.thread_data));
++#endif
+ #else
+           return hash_value(v.thread_data.get());
+ #endif
+@@ -642,11 +647,19 @@ namespace boost
+     public:
+         id() BOOST_NOEXCEPT:
+ #if defined BOOST_THREAD_PROVIDES_BASIC_THREAD_ID
++#ifndef __MVS__
+         thread_data(0)
++#else
++        // have to use memset() since pthread_t technically isn't a number on z/OS
++        thread_data() { memset (&thread_data, 0, sizeof(pthread_t)); }
++#endif
+ #else
+         thread_data()
+ #endif
+-        {}
++#ifndef __MVS__
++         {}
++#endif
++#ifndef __MVS__
+ 
+         bool operator==(const id& y) const BOOST_NOEXCEPT
+         {
+@@ -677,6 +690,39 @@ namespace boost
+         {
+             return !(thread_data<y.thread_data);
+         }
++#else
++        // treat thread_data (pthread_t) as if it's a uint64_t
++
++        bool operator==(const id& y) const BOOST_NOEXCEPT
++        {
++            return *(uint64_t*)(&thread_data)==*(uint64_t*)(&y.thread_data);
++        }
++
++        bool operator!=(const id& y) const BOOST_NOEXCEPT
++        {
++            return *(uint64_t*)(&thread_data)!=*(uint64_t*)(&y.thread_data);
++        }
++
++        bool operator<(const id& y) const BOOST_NOEXCEPT
++        {
++            return *(uint64_t*)(&thread_data)<*(uint64_t*)(&y.thread_data);
++        }
++
++        bool operator>(const id& y) const BOOST_NOEXCEPT
++        {
++            return *(uint64_t*)(&y.thread_data)<*(uint64_t*)(&thread_data);
++        }
++
++        bool operator<=(const id& y) const BOOST_NOEXCEPT
++        {
++            return !(*(uint64_t*)(&y.thread_data)<*(uint64_t*)(&thread_data));
++        }
++
++        bool operator>=(const id& y) const BOOST_NOEXCEPT
++        {
++            return !(*(uint64_t*)(&thread_data)<*(uint64_t*)(&y.thread_data));
++        }
++#endif
+ 
+ #ifndef BOOST_NO_IOSTREAM
+ #ifndef BOOST_NO_MEMBER_TEMPLATE_FRIENDS
+@@ -685,10 +731,15 @@ namespace boost
+   std::basic_ostream<charT, traits>&
+         operator<<(std::basic_ostream<charT, traits>& os, const id& x)
+         {
++#ifndef __MVS__
+             if(x.thread_data)
++#else
++            // treat thread_data (pthread_t) as if it's a uint64_t
++            if((uint64_t*)(&x.thread_data))
++#endif
+             {
+                 io::ios_flags_saver  ifs( os );
+-                return os<< std::hex << x.thread_data;
++                return os<< std::hex << x.thread_data.__;
+             }
+             else
+             {

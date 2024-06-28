@@ -1,0 +1,166 @@
+diff --git a/src/engine/execunix.cpp b/src/engine/execunix.cpp
+index fd8220e77..f81e6060c 100644
+--- a/src/engine/execunix.cpp
++++ b/src/engine/execunix.cpp
+@@ -26,6 +26,10 @@
+ #include <sys/wait.h>
+ #include <poll.h>
+ 
++#ifdef __MVS__
++#include <unistd.h>
++#endif
++
+ #if defined(sun) || defined(__sun)
+     #include <wait.h>
+ #endif
+@@ -380,6 +384,10 @@ static int read_descriptor( int i, int s )
+         cmdtab[ i ].stream[ s ] ) ) )
+     {
+         buffer[ ret ] = 0;
++#ifdef __MVS__
++        // stream is coming in as EBCDIC, and we're ASCII here
++        __etoa(buffer);
++#endif
+ 
+         /* Copy it to our output if appropriate */
+         if ( ! ( cmdtab[ i ].flags & EXEC_CMD_QUIET ) )
+@@ -526,7 +534,12 @@ void exec_wait()
+                 int status;
+                 int rstat;
+                 timing_info time_info;
++#ifndef __MVS__
+                 struct rusage cmd_usage;
++#else
++                // z/OS doesn't have wait4() yet, so not tracking usage
++                struct rusage cmd_usage = {0};
++#endif
+ 
+                 /* We found a terminated child process - our search is done. */
+                 finished = 1;
+@@ -537,7 +550,19 @@ void exec_wait()
+                     close_streams( i, ERR );
+ 
+                 /* Reap the child and release resources. */
++#ifndef __MVS__
+                 while ( ( pid = wait4( cmdtab[ i ].pid, &status, 0, &cmd_usage ) ) == -1 )
++#else
++                /*
++                    Similarly, the following wait4() call:
++                        wait4(pid, wstatus, options, rusage);
++                    is equivalent to:
++                        waitpid(pid, wstatus, options);
++                */
++
++                // z/OS doesn't have wait4() yet
++                while ( ( pid = waitpid( cmdtab[ i ].pid, &status, 0) ) == -1 )
++#endif
+                     if ( errno != EINTR )
+                         break;
+                 if ( pid != cmdtab[ i ].pid )
+diff --git a/src/engine/filesys.cpp b/src/engine/filesys.cpp
+index 98e1aabe8..cfe5757ef 100644
+--- a/src/engine/filesys.cpp
++++ b/src/engine/filesys.cpp
+@@ -316,8 +316,14 @@ void file_query_posix_( file_info_t * const info )
+     }
+     else
+     {
++#ifndef __MVS__
+         info->is_file = statbuf.st_mode & S_IFREG ? 1 : 0;
+         info->is_dir = statbuf.st_mode & S_IFDIR ? 1 : 0;
++#else
++        // z/OS has different S_ISREG/S_ISDIR syntax
++        info->is_file = S_ISREG(statbuf.st_mode) ? 1 : 0;
++        info->is_dir = S_ISDIR(statbuf.st_mode) ? 1 : 0;
++#endif
+         info->exists = 1;
+ #if defined(_POSIX_VERSION) && _POSIX_VERSION >= 200809
+ #if defined(OS_MACOSX)
+diff --git a/src/engine/fileunix.cpp b/src/engine/fileunix.cpp
+index 3a7907ead..7b47e66c1 100644
+--- a/src/engine/fileunix.cpp
++++ b/src/engine/fileunix.cpp
+@@ -103,6 +103,83 @@ struct ar_hdr  /* archive file member header - printable ascii */
+ # include <ar.h>
+ #endif
+ 
++#ifdef __MVS__
++
++// copied from: https://github.com/libuv/libuv/blob/v1.x/src/unix/os390-syscalls.c
++int scandir(const char* maindir, struct dirent*** namelist,
++            int (*filter)(const struct dirent*),
++            int (*compar)(const struct dirent**,
++            const struct dirent **)) {
++  struct dirent** nl;
++  struct dirent** nl_copy;
++  struct dirent* dirent;
++  unsigned count;
++  size_t allocated;
++  DIR* mdir;
++
++  nl = NULL;
++  count = 0;
++  allocated = 0;
++  mdir = opendir(maindir);
++  if (!mdir)
++    return -1;
++
++  for (;;) {
++    dirent = readdir(mdir);
++    if (!dirent)
++      break;
++    if (!filter || filter(dirent)) {
++      struct dirent* copy;
++      copy = (struct dirent*)malloc(sizeof(*copy));
++      if (!copy)
++        goto error;
++      memcpy(copy, dirent, sizeof(*copy));
++
++      nl_copy = (struct dirent**)realloc(nl, sizeof(*copy) * (count + 1));
++	if (nl_copy == NULL) {
++        free(copy);
++        goto error;
++      }
++
++      nl = nl_copy;
++      nl[count++] = copy;
++    }
++  }
++
++  qsort(nl, count, sizeof(struct dirent *),
++       (int (*)(const void *, const void *)) compar);
++
++  closedir(mdir);
++
++ *namelist = nl;
++  return count;
++
++error:
++  while (count > 0) {
++    dirent = nl[--count];
++    free(dirent);
++  }
++  free(nl);
++  closedir(mdir);
++  errno = ENOMEM;
++  return -1;
++}
++
++
++/*
++    The alphasort() and versionsort() functions can be used as the
++    comparison function compar().  The former sorts directory entries
++    using strcoll(3), the latter using strverscmp(3) on the strings
++    (*a)->d_name and (*b)->d_name.
++*/
++
++int alphasort (const struct dirent **a, const struct dirent **b)
++{
++    return strcoll ((*a)->d_name, (*b)->d_name);
++}
++
++#endif
++
+ 
+ /*
+  * file_collect_dir_content_() - collects directory content information

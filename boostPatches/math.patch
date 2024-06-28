@@ -1,0 +1,14 @@
+diff --git a/include/boost/math/tools/config.hpp b/include/boost/math/tools/config.hpp
+index 9e4b7d7ca..6dd74bdcb 100644
+--- a/include/boost/math/tools/config.hpp
++++ b/include/boost/math/tools/config.hpp
+@@ -23,7 +23,8 @@
+ #  endif
+ #else
+ #  if __cplusplus < 201402L
+-#    warning "Boost.Math requires C++14"
++// ignore this for now
++//#    warning "Boost.Math requires C++14"
+ #  endif
+ #endif
+ 
