@@ -46,7 +46,7 @@ zopen_build()
 
 # Function to test Boost libraries
 build_and_test_boost() {
-    local test_dir="$1"
+    test_dir="$1"
     cd "$test_dir" || {
         echo "Error: Failed to change directory to $test_dir"
         return 1
