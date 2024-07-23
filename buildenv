@@ -6,6 +6,7 @@ export ZOPEN_BUILD_LINE="DEV"
 export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
 export ZOPEN_CHECK_TIMEOUT=72000 # 20 hours
+export ZOPEN_SKIP_ZOSLIB_ENV_HOOK="skip"
 
 export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
