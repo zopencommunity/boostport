@@ -7,9 +7,7 @@ export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
 export ZOPEN_CHECK_TIMEOUT=72000 # 20 hours
 export ZOPEN_SKIP_ZOSLIB_ENV_HOOK="skip"
-
 export ZOPEN_BOOTSTRAP="zopen_bootstrap"
-export ZOPEN_BOOTSTRAP_OPTS="-with-libraries=thread,chrono --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR"
 export ZOPEN_CONFIGURE=skip
 export ZOPEN_CHECK="zopen_check"
 export ZOPEN_CLEAN=skip
@@ -20,7 +18,7 @@ export ZOPEN_INSTALL="zopen_install"
 
 zopen_bootstrap()
 {
-	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test,regex,system,url,wave,type_erasure,timer,random,nowide,random,fiber,json --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
 }
 
 zopen_post_install()
@@ -60,21 +58,15 @@ build_and_test_boost() {
 
 zopen_check()
 {
-       echo `pwd`
+	# Define the comma-separated list of libraries
+	libraries="chrono,thread,container,filesystem,graph,serialization,date_time,regex,algorithm,align,array,any,assert,bind,callable_traits,circular_buffer,concept_check,config,container_hash,core,endian,foreach,format,function,functional,integer,intrusive,lexical_cast"
 
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/chrono/test"
+	# Convert the comma-separated list into an array
+	IFS=','
 
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/thread/test"
-
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/container/test"
-
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/filesystem/test"
-
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/graph/test"
-
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/serialization/test"
-
-       build_and_test_boost "$ZOPEN_ROOT/boost/libs/date_time/test"
+	echo "$libraries" | tr ',' '\n' | while read -r item; do
+		build_and_test_boost "$ZOPEN_ROOT/boost/libs/$item/test"
+	done
 }
 
 apply_patch() {
@@ -173,6 +165,11 @@ zopen_init()
   cd ./libs/filesystem
   echo "In ZOPEN_INIT, applying patch to lib - filesystem"
   if ! apply_patch "$ZOPEN_ROOT/boostPatches/directory.cpp.patch"; then return 1; fi
+  cd -
+
+  cd ./libs/json
+  echo "In ZOPEN_INIT, applying patch to lib - json"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/json_bigint.hpp.patch"; then return 1; fi
   cd -
 
   echo `pwd`
