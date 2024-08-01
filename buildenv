@@ -35,7 +35,7 @@ zopen_post_install()
   find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
   mkdir $ZOPEN_INSTALL_DIR/samples
 
-echo -e "The sample programs can be compiled using following command. The Pre-requisites are:\n1.clang compiler\n2.Install zoslib library\n3.Install boost library\n\n The command for compilation is:\nclang++ -std=c++11 -o <exename> <filename>.cpp -fzos-le-char-mode=ascii -DZOSLIB_OVERRIDE_CLIB=1 -DZOSLIB_OVERRIDE_CLIB_GETENV=1 -I<boost-header-path> -L<boost-lib-path> -isystem <path-to-zoslib-include> -isystem <path-to-zoslib-include/c++/v1> -include <path-to-zoslib-include/zos-v2r5-symbolfixes.h> -L<path-to-zoslib/lib> -L<path-to-zoslib/libcelquopt.s.o> -lzoslib-supp -lzoslib -l<anyboost-lib>" > $ZOPEN_INSTALL_DIR/samples/README.txt
+echo -e "The sample programs can be compiled using following command. The pre-requisites for compiling these samples are:\n1.clang compiler\n2.Install zoslib library\n3.Install boost library\n\n The command for compilation is:\nclang++ -std=c++11 -o <exename> <filename>.cpp -fzos-le-char-mode=ascii -DZOSLIB_OVERRIDE_CLIB=1 -DZOSLIB_OVERRIDE_CLIB_GETENV=1 -I<boost-header-path> -L<boost-lib-path> -isystem <path-to-zoslib-include> -isystem <path-to-zoslib-include/c++/v1> -include <path-to-zoslib-include/zos-v2r5-symbolfixes.h> -L<path-to-zoslib/lib> -L<path-to-zoslib/libcelquopt.s.o> -lzoslib-supp -lzoslib -l<anyboost-lib>" > $ZOPEN_INSTALL_DIR/samples/README.txt
 
   cp ../samples/* $ZOPEN_INSTALL_DIR/samples/
 }
