@@ -7,6 +7,7 @@ export ZOPEN_CLONE_SUBMODULES="yes"
 export ZOPEN_COMP="clang"
 export ZOPEN_CHECK_TIMEOUT=72000 # 20 hours
 export ZOPEN_SKIP_ZOSLIB_ENV_HOOK="skip"
+
 export ZOPEN_BOOTSTRAP="zopen_bootstrap"
 export ZOPEN_CONFIGURE=skip
 export ZOPEN_CHECK="zopen_check"
@@ -18,13 +19,25 @@ export ZOPEN_INSTALL="zopen_install"
 
 zopen_bootstrap()
 {
-	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test,regex,system,url,wave,type_erasure,timer,random,nowide,random,fiber,json --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+	./bootstrap.sh -with-libraries=thread,chrono,container,filesystem,graph,serialization,date_time,test,regex,system,url,wave,type_erasure,timer,random,nowide,random,fiber,json,charconv,iostreams --with-toolset=clang --prefix=$ZOPEN_INSTALL_DIR
+}
+
+zopen_install_caveats()
+{
+cat <<ZZ
+The samples directory contains examples that demonstrate how to use Boost libraries. Refer to the README for instructions on how to compile them.
+ZZ
 }
 
 zopen_post_install()
 {
   echo `pwd`
   find . -type f -name "*.x" -exec cp {} "${ZOPEN_INSTALL_DIR}/lib" \;
+  mkdir $ZOPEN_INSTALL_DIR/samples
+
+echo -e "The sample programs can be compiled using following command. The Pre-requisites are:\n1.clang compiler\n2.Install zoslib library\n3.Install boost library\n\n The command for compilation is:\nclang++ -std=c++11 -o <exename> <filename>.cpp -fzos-le-char-mode=ascii -DZOSLIB_OVERRIDE_CLIB=1 -DZOSLIB_OVERRIDE_CLIB_GETENV=1 -I<boost-header-path> -L<boost-lib-path> -isystem <path-to-zoslib-include> -isystem <path-to-zoslib-include/c++/v1> -include <path-to-zoslib-include/zos-v2r5-symbolfixes.h> -L<path-to-zoslib/lib> -L<path-to-zoslib/libcelquopt.s.o> -lzoslib-supp -lzoslib -l<anyboost-lib>" > $ZOPEN_INSTALL_DIR/samples/README.txt
+
+  cp ../samples/* $ZOPEN_INSTALL_DIR/samples/
 }
 
 zopen_install()
@@ -59,7 +72,7 @@ build_and_test_boost() {
 zopen_check()
 {
 	# Define the comma-separated list of libraries
-	libraries="chrono,thread,container,filesystem,graph,serialization,date_time,regex,algorithm,align,array,any,assert,bind,callable_traits,circular_buffer,concept_check,config,container_hash,core,endian,foreach,format,function,functional,integer,intrusive,lexical_cast"
+	libraries="chrono,thread,container,filesystem,graph,serialization,date_time,regex,algorithm,align,array,any,assert,bind,callable_traits,circular_buffer,concept_check,config,container_hash,core,endian,foreach,format,function,functional,integer,intrusive,lexical_cast,describe,detail,iostreams"
 
 	# Convert the comma-separated list into an array
 	IFS=','
