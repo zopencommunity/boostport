@@ -157,7 +157,16 @@ zopen_init()
 
   cd ./libs/iostreams
   echo "In ZOPEN_INIT, applying patch to lib - iostreams"
-  if ! apply_patch "$ZOPEN_ROOT/boostPatches/iostreams.Jamfile.v2.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/iostreams_build.Jamfile.v2.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/iostream_test_Jamfile_v2.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/auto_close_test.cpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/flush_test.cpp.patch"; then return 1; fi
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/seekable_filter_test.cpp.patch"; then return 1; fi
+  cd -
+
+  cd ./libs/charconv
+  echo "In ZOPEN_INIT, applying patch to lib - chrono"
+  if ! apply_patch "$ZOPEN_ROOT/boostPatches/charconv_bigint.hpp.patch"; then return 1; fi
   cd -
 
   cd ./libs/chrono

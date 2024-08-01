@@ -1,0 +1,15 @@
+diff --git a/test/flush_test.cpp b/test/flush_test.cpp
+index edb72ca..503898f 100644
+--- a/test/flush_test.cpp
++++ b/test/flush_test.cpp
+@@ -5,7 +5,10 @@
+ 
+ // See http://www.boost.org/libs/iostreams for documentation.
+ 
++#define system invalid_system
++#include <stdlib.h>
+ #include <algorithm>  // equal.
++#undef system
+ #include <fstream>
+ #include <boost/iostreams/device/back_inserter.hpp>
+ #include <boost/iostreams/device/file.hpp>

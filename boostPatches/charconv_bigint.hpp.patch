@@ -1,0 +1,18 @@
+diff --git a/include/boost/charconv/detail/fast_float/bigint.hpp b/include/boost/charconv/detail/fast_float/bigint.hpp
+index fd98590..6ca5472 100644
+--- a/include/boost/charconv/detail/fast_float/bigint.hpp
++++ b/include/boost/charconv/detail/fast_float/bigint.hpp
+@@ -8,11 +8,13 @@
+ #ifndef BOOST_CHARCONV_DETAIL_FASTFLOAT_BIGINT_HPP
+ #define BOOST_CHARCONV_DETAIL_FASTFLOAT_BIGINT_HPP
+ 
++#define string_rindex rindex
+ #include <boost/charconv/detail/fast_float/float_common.hpp>
+ #include <algorithm>
+ #include <cstdint>
+ #include <climits>
+ #include <cstring>
++#undef rindex
+ 
+ namespace boost { namespace charconv { namespace detail { namespace fast_float {
+ 

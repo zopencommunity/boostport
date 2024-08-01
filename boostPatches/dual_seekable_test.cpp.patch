@@ -1,0 +1,17 @@
+diff --git a/test/dual_seekable_test.cpp b/test/dual_seekable_test.cpp
+index c0b9c66..2096168 100644
+--- a/test/dual_seekable_test.cpp
++++ b/test/dual_seekable_test.cpp
+@@ -5,8 +5,11 @@
+ // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt.)
+ 
+ // See http://www.boost.org/libs/iostreams for documentation. 
+-
++#define system invalid_system
++//int      invalid_system (const char *);
++#include <stdlib.h>
+ #include <sstream>
++#undef system
+ #include <boost/iostreams/device/file.hpp>
+ #include <boost/iostreams/filtering_stream.hpp>
+ #include <boost/test/test_tools.hpp>

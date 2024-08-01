@@ -1,0 +1,15 @@
+diff --git a/test/seekable_filter_test.cpp b/test/seekable_filter_test.cpp
+index afd0af8..5fb96dc 100644
+--- a/test/seekable_filter_test.cpp
++++ b/test/seekable_filter_test.cpp
+@@ -5,7 +5,10 @@
+ 
+ // See http://www.boost.org/libs/iostreams for documentation.
+ 
++#define system invalid_system
++#include <stdlib.h>
+ #include <vector>
++#undef system
+ #include <boost/config.hpp>
+ #include <boost/detail/workaround.hpp>
+ #include <boost/iostreams/device/array.hpp>
