@@ -72,7 +72,7 @@ build_and_test_boost() {
 zopen_check()
 {
 	# Define the comma-separated list of libraries
-	libraries="chrono,thread,container,filesystem,graph,serialization,date_time,regex,algorithm,align,array,any,assert,bind,callable_traits,circular_buffer,concept_check,config,container_hash,core,endian,foreach,format,function,functional,integer,intrusive,lexical_cast,describe,detail,iostreams,function_types,flyweight,heap,move,iterator"
+	libraries="chrono,thread,container,filesystem,graph,serialization,date_time,regex,algorithm,align,array,any,assert,bind,callable_traits,circular_buffer,concept_check,config,container_hash,core,endian,foreach,format,function,functional,function_types,integer,intrusive,iterator,iostreams,lexical_cast,describe,detail,flyweight,heap,move,utility,unordered,typeof,tuple,multi_array,multi_index,lambda,lambda2,smart_ptr,assign,range,static_string"
 
 	# Convert the comma-separated list into an array
 	IFS=','
