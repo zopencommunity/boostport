@@ -1,19 +1,19 @@
 diff --git a/build/Jamfile.v2 b/build/Jamfile.v2
-index 7ea8a96..14747ce 100644
+index fc591b2..f67fee3 100644
 --- a/build/Jamfile.v2
 +++ b/build/Jamfile.v2
-@@ -36,7 +36,7 @@ for local v in NO_COMPRESSION
+@@ -33,7 +33,7 @@ for local v in NO_COMPRESSION
  
- if $(NO_COMPRESSION) != 1 && $(NO_ZLIB) != 1
+ if $(has_zlib)
  {
 -    using zlib : : <build-name>boost_zlib <tag>@tag ;
 +    using zlib : : <build-name>boost_zlib : <tag>@tag ;
      zlib-requirements =
          [ ac.check-library /zlib//zlib : <library>/zlib//zlib
            <source>zlib.cpp <source>gzip.cpp ] ;
-@@ -57,7 +57,7 @@ else
+@@ -53,7 +53,7 @@ else
  
- if $(NO_COMPRESSION) != 1 && $(NO_BZIP2) != 1
+ if $(has_bzip2)
  {
 -    using bzip2 : : <build-name>boost_bzip2 <tag>@tag ;
 +    using bzip2 : : <build-name>boost_bzip2 : <tag>@tag ;

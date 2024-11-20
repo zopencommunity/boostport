@@ -1,14 +1,14 @@
 diff --git a/test/Jamfile.v2 b/test/Jamfile.v2
-index e13ff8f..5811906 100644
+index 875ca84..f6a17f6 100644
 --- a/test/Jamfile.v2
 +++ b/test/Jamfile.v2
-@@ -158,7 +158,8 @@ rule compile-fail-iostreams ( sources * : requirements * : target-name ? ) {
+@@ -170,7 +170,8 @@ rule compile-fail-iostreams ( sources * : requirements * : target-name ? ) {
        }
        if ! $(NO_LZMA)
        {
 -          using lzma : : <build-name>boost_lzma <tag>@tag : : true ;
 +          #using lzma : : <build-name>boost_lzma <tag>@tag : : true ;
 +          using lzma : : : : ;
-           all-tests += [ test-iostreams 
+           all-tests += [ test-iostreams
                               lzma_test.cpp ../build//boost_iostreams :
                               [ ac.check-library /lzma//lzma : : <build>no ] ] ;
